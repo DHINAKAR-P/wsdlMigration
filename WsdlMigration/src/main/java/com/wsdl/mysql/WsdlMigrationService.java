@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +31,14 @@ public class WsdlMigrationService {
  
 	@Value("${wsdl.conversion.command}")
 	private String wsdl_conversion_command;
+	
+	
 	private String hostname;
 		             
 	public String getHostname() {
 		return hostname;
 	}
-	public String display(String className,List<String> nounAttributes){
-		dataLoaderDao.insertData(className,nounAttributes);
-		return "Insert Succesfull!!!";
-	}
+
 	public String getWsdlURL() {
 		return wsdlURL;
 	}
@@ -46,6 +46,13 @@ public class WsdlMigrationService {
 		this.wsdlURL = wsdlURL;
 	}
 	
+	
+	public String display(String wsdl_Name,String className,HashMap<String, String> atrribute_type_map ) throws Exception{
+		
+		dataLoaderDao.insertData(wsdl_Name ,className,atrribute_type_map);
+		
+		return "Insert Succesfull!!!";
+	}
 	
 	public  String downlaodWSDL() throws Exception	{
 		// String site= "https://community.workday.com/custom/developer/API/Time_Tracking/v23.0/Time_Tracking.wsdl";

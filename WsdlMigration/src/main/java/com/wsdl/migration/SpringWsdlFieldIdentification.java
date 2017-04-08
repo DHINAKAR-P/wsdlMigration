@@ -1,6 +1,8 @@
 package com.wsdl.migration;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +20,7 @@ import com.wsdl.mysql.WsdlMigrationService;
 
 public class SpringWsdlFieldIdentification {
 	
-	public static void main(String[] args) throws ClassNotFoundException {
+	public static void main(String[] args) throws Exception {
 		String wsdl_Name = null;
 		 ApplicationContext context = new ClassPathXmlApplicationContext("classpath:spring-config.xml");
 		  WsdlMigrationService wsdlMigrationService = (WsdlMigrationService) context
@@ -37,6 +39,7 @@ public class SpringWsdlFieldIdentification {
 		}
 		
 		HashMap<String, List<String>> fielsList = new HashMap<String, List<String>>();
+		HashMap<String, String> atrribute_type_map = new HashMap<String, String>();
 
 		// create scanner and disable default filters (that is the 'false'
 		// argument)
@@ -55,16 +58,37 @@ public class SpringWsdlFieldIdentification {
 			List<String> Fields = new ArrayList<String>();
 			Class<?> clazz = Class.forName(bean.getBeanClassName());
 			// ... do your magic with the class ...
+			Method[] method = clazz.getDeclaredMethods();
+			
+			for(Method m : method){
+				System.err.println("method - > "+m.getName());
+				Type [] typeOfMethod = m.getParameterTypes();
+				for(Type ty :typeOfMethod){
+					System.out.println("type of method- > "+ty);
+				}
+			}
+			
+			System.err.println("class- > "+clazz.getSimpleName());
 			Field[] allFields = clazz.getDeclaredFields();
+			String finalType = null;
 			for (Field field : allFields) {
 				Fields.add(field.getName());
+				
+				if(!field.getType().getSimpleName().equals("List")){
+					atrribute_type_map.put(field.getName(), field.getType().getSimpleName());
+				}else{
+					
+					String tempType= field.getGenericType().getTypeName().toString();
+					String [] test =tempType.split("\\.");
+					finalType = test[test.length-1];//;
+					finalType = finalType.substring(0, test[test.length-1].length() - 1);
+					finalType = "List<"+finalType+">";
+					atrribute_type_map.put(field.getName(), finalType);
+				}
 			}
-			fielsList.put(clazz.getSimpleName(), Fields);
-		}
-	//	System.out.println("list - > "+fielsList.get("WorkerResponseGroupForReferenceType"));
-			for (String key : fielsList.keySet()) {
-				String successdata = wsdlMigrationService.display(key,fielsList.get(key));
-				System.out.println("--- > > "+successdata);
+			if(!clazz.getSimpleName().equals("ObjectFactory")){
+				 wsdlMigrationService.display(wsdl_Name,clazz.getSimpleName(),atrribute_type_map);
+			}
 		}
 		System.exit(0);
 	}

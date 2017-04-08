@@ -15,7 +15,7 @@
 
 	<context:property-placeholder location="classpath:jdbc.properties"
 		order="1" ignore-unresolvable="true" />
-		<context:property-placeholder location="classpath:sql_queries/Migration_Default_Activity_SQL.properties"
+		<context:property-placeholder location="classpath:sql_queries/Wsdl_Migration_SQL.properties"
 		order="2" ignore-unresolvable="true" />
 
 	<beans:bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource"   destroy-method="close">
