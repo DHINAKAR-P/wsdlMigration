@@ -2,6 +2,7 @@ package com.wsdl.mysql;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -28,6 +29,9 @@ public class DataLoaderDao {
 
 	@Value("${insert_Attributes_by_class.sql}")
 	private String insert_Attributes_by_class;
+	
+	@Value("${insert_operation_by_wsdl.sql}")
+	private String insertOperationByWsdl;
 	
 	
 	public DataLoaderDao() {
@@ -68,11 +72,13 @@ public class DataLoaderDao {
 	}
 	
 	
-	public void insertData(String wsdl_Name,String className,HashMap<String, String> atrribute_type_map) throws JSONException {
+	public void insertData(String wsdl_Name,String className,HashMap<String, String> atrribute_type_map,Long projectId,Long userId) throws JSONException {
 		GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
 		
 		SqlParameterSource  namedParameters = new MapSqlParameterSource("class_name", className)
-				.addValue("wsdl_name",wsdl_Name);
+				.addValue("wsdl_name",wsdl_Name)
+				.addValue("project_id",projectId)
+				.addValue("user_id",userId);
 			try {
 				namedParameterJdbcTemplate.update(insert_query, namedParameters,generatedKeyHolder, new String[]{"id"});
 				Number class_id = generatedKeyHolder.getKey();
@@ -84,9 +90,25 @@ public class DataLoaderDao {
 					namedParameterJdbcTemplate.update(insert_Attributes_by_class, attributeInsertion);
 			}
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		System.out.println("======== End of inserting data ================");
+	}
+
+	public void insertMethod(HashMap<String,List<String>> method_parameter_map) {
+
+		GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
+			try {
+				for(String key : method_parameter_map.keySet()) {
+					SqlParameterSource  attributeInsertion = new MapSqlParameterSource("operation", key)
+							.addValue("operation_parameters",method_parameter_map.get(key).toString()); 
+					namedParameterJdbcTemplate.update(insertOperationByWsdl, attributeInsertion);
+			}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		System.err.println("======== method inserted ================");
+		
+		
 	}
 }

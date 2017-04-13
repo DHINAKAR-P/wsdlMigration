@@ -1,46 +1,70 @@
 package com.wsdl.migration;
+import com.predic8.schema.Schema;
 import com.predic8.wsdl.Definitions;
 import com.predic8.wsdl.Fault;
+import com.predic8.wsdl.Message;
 import com.predic8.wsdl.Operation;
+import com.predic8.wsdl.Part;
+import com.predic8.wsdl.Port;
 import com.predic8.wsdl.PortType;
+import com.predic8.wsdl.Service;
 import com.predic8.wsdl.WSDLParser;
 
-import groovy.xml.QName;
- 
+import groovy.lang.GrabResolver;
+import groovy.lang.MetaMethod;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.wsdl.Definition;
+import javax.wsdl.WSDLException;
+import javax.wsdl.factory.WSDLFactory;
+import javax.wsdl.xml.WSDLReader;
+//import groovy.xml.QName;
+//import javax.xml.namespace.QName;
+import javax.xml.namespace.*;
+ /*
+@GrabResolver(name='membrane', root='http://repository.membrane-soa.org/content/repositories/releases')
+@Grab(group='com.predic8', module='soa-model-core', version='1.5.3')
+
+//for some reason, I'm getting "java.lang.NoClassDefFoundError: Unable to load class com.predic8.schema.SchemaComponent due to missing dependency Lorg/slf4j/Logger;" in my GroovyConsole when I don't have this
+@GrabConfig(systemClassLoader=true, initContextClassLoader=true)
+*/
 public class FullWSDLParser {
  
-    public static void main(String[] args) {
-    	
-
-    	// the fix
-    	/*MetaMethod originalSetType = Declaration.metaClass.getMetaMethod("setType",[Object]);
-    	Declaration.metaClass.setType = { Object obj ->
-    	   if (obj)
-    	       originalSetType.invoke((QName) obj)
-    	};*/
-    	
+    public static void main(String[] args) throws WSDLException {
+    
         WSDLParser parser = new WSDLParser();
+        
+     /*   WSDLFactory factory = WSDLFactory.newInstance();
+        WSDLReader reader = factory.newWSDLReader();
+        Definition defs = reader.readWSDL( null, "http://www.webservicex.com/globalweather.asmx?WSDL" );
+        
+        System.err.println("getTargetNamespace- > "+defs.getTargetNamespace());
+      //  System.err.println("serice name - > "+defs.getAllServices().toString());
+        System.out.println(""+defs.getQName());
+     
+        QName news = new QName(defs.getTargetNamespace(), "GlobalWeather");
+        System.out.println(defs.getService(news).getPorts());*/
+     //   Map m = defs.getAllServices();
  
-        //https://community.workday.com/custom/developer/API/Time_Tracking/v23.0/Time_Tracking.wsdl
-       // Definitions defs = parser.parse("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
-        Definitions defs = parser.parse("https://community.workday.com/custom/developer/API/Time_Tracking/v23.0/Time_Tracking.wsdl");
+       Definitions defs = parser.parse("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
+   //Definitions defs = parser.parse("https://community.workday.com/custom/developer/API/Time_Tracking/v23.0/Time_Tracking.wsdl");
         //setType((QName) qname))
+      //QName type = (QName) defs.getTypeQName(token.getAttributeValue());
    //unwanted      defs.getTypeQName(token.getAttributeValue( null , 'type'));
       //  Definitions defs = parser.parse("http://www.webservicex.com/globalweather.asmx?WSDL");
         //http://www.webservicex.com/globalweather.asmx?WSDL
  
         out("-------------- WSDL Details --------------");
-        System.out.println("TargenNamespace: \t" + defs.getTargetNamespace());
-       /* if (defs.getDocumentation() != null) {
+        System.err.println("TargenNamespace: \t ---- > " + defs.getTargetNamespace());
+        if (defs.getDocumentation() != null) {
             out("Documentation: \t\t" + defs.getDocumentation());
         }
         out("\n");
- 
-         For detailed schema information see the FullSchemaParser.java sample.
         out("Schemas: ");
         for (Schema schema : defs.getSchemas()) {
-            out("  TargetNamespace: \t" + schema.getTargetNamespace());
+            out("  TargetNamespace:---->>>>>>>>>>>>>>>>>>>>>>>. \t" + schema.getTargetNamespace());
         }
         out("\n");
          
@@ -55,7 +79,7 @@ public class FullWSDLParser {
                 out("");
             }
         }
-        out("");*/
+        out("");
  
         out("PortTypes: ");
         for (PortType pt : defs.getPortTypes()) {
@@ -63,6 +87,7 @@ public class FullWSDLParser {
         	System.out.println("  PortType Operations: ");
             for (Operation op : pt.getOperations()) {
             	System.err.println("    Operation Name: " + op.getName());
+            	System.out.println("------------QNAME - > "+op.getQName());
             	System.err.println("    Operation Input Name: "
                     + ((op.getInput().getName() != null) ? op.getInput().getName() : "not available!"));
             	System.out.println("    Operation Input Message: "
@@ -102,7 +127,7 @@ public class FullWSDLParser {
         }
         out("");*/
  
-        /*out("Services: ");
+        out("Services: ");
         for (Service service : defs.getServices()) {
             out("  Service Name: " + service.getName());
             out("  Service Potrs: ");
@@ -113,7 +138,7 @@ public class FullWSDLParser {
                     + "\n");
             }
         }
-        out("");*/
+        out("");
     }
  
     private static void out(String str) {

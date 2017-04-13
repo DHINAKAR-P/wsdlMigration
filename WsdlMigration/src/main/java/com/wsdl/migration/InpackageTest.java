@@ -3,13 +3,19 @@ package com.wsdl.migration;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import javax.wsdl.Port;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Service;
 
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
@@ -81,10 +87,23 @@ public class InpackageTest {
 	        return classes;
 	    }*/
 
-	public static void main(String[] args){
-		  ApplicationContext context = new ClassPathXmlApplicationContext("classpath:spring-config.xml");
+	public static void main(String[] args) throws MalformedURLException{
+		 /* ApplicationContext context = new ClassPathXmlApplicationContext("classpath:spring-config.xml");
 		  WsdlMigrationService wsdlMigrationService = (WsdlMigrationService) context
-					.getBean("WsdlMigrationService");
+					.getBean("WsdlMigrationService");*/
+		
+		  URL wsdlUrl = new URL("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
+
+		    //qualifier name ...
+	        QName qname = new QName("http://thomas-bayer.com/blz/", "BLZService");
+
+	        Service service = Service.create(wsdlUrl, qname);
+
+	        System.out.println(service.getServiceName().getLocalPart().toString());
+
+	     //   WebServiceInterface helloService = service.getPort(WebServiceInterface.class);
+
+	      //  System.out.println(helloService.getHelloWorldAsString("- This is Java Code Geeks"));
 		  
 		  System.exit(0);
 	}

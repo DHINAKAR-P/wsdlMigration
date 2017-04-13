@@ -1,0 +1,501 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:wd-wsdl="urn:com.workday/bsvc/Time_Tracking" xmlns:wd="urn:com.workday/bsvc"
+	xmlns:nyw="urn:com.netyourwork/aod" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:soapbind="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:httpbind="http://schemas.xmlsoap.org/wsdl/http/"
+	xmlns:mimebind="http://schemas.xmlsoap.org/wsdl/mime/" name="Time_Tracking"
+	targetNamespace="urn:com.workday/bsvc/Time_Tracking">
+	<wsdl:documentation>Exposes Workday Time Tracking service to ingest
+		time data from external systems.</wsdl:documentation>
+	<wsdl:types>
+		<xsd:schema elementFormDefault="qualified"
+			attributeFormDefault="qualified" targetNamespace="urn:com.workday/bsvc">
+			<xsd:element name="Validation_Fault" type="wd:Validation_FaultType" />
+			<xsd:element name="Processing_Fault" type="wd:Processing_FaultType" />
+			<xsd:element name="Put_Time_Clock_Events_Request" type="wd:Put_Time_Clock_Events_RequestType" />
+			<xsd:element name="Put_Time_Clock_Events_Response" type="wd:Put_Time_Clock_Events_ResponseType" />
+			<xsd:attribute name="version" type="xsd:string"
+				wd:fixed="v23.0" />
+			<xsd:simpleType name="Time_Punch_TypeReferenceEnumeration">
+				<xsd:restriction base="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<wd:enumeration value="WID" />
+							<wd:enumeration value="Clock_Event_Type" />
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:restriction>
+			</xsd:simpleType>
+			<xsd:complexType name="Time_Punch_TypeObjectIDType">
+				<xsd:annotation>
+					<xsd:documentation>Contains a unique identifier for an instance of
+						an object.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleContent>
+					<xsd:extension base="xsd:string">
+						<xsd:attribute name="type"
+							type="wd:Time_Punch_TypeReferenceEnumeration" use="required">
+							<xsd:annotation>
+								<xsd:documentation>The unique identifier type. Each "ID" for an
+									instance of an object contains a type and a value. A single
+									instance of an object can have multiple "ID" but only a single
+									"ID" per "type".</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+					</xsd:extension>
+				</xsd:simpleContent>
+			</xsd:complexType>
+			<xsd:complexType name="Time_Punch_TypeObjectType">
+				<xsd:annotation wd:Is_Reference_ID="1" />
+				<xsd:sequence>
+					<xsd:element name="ID" type="wd:Time_Punch_TypeObjectIDType"
+						minOccurs="0" maxOccurs="unbounded" />
+				</xsd:sequence>
+				<xsd:attribute name="Descriptor" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>Display information used to describe an
+							instance of an object. This 'optional' information is for
+							outbound descriptive purposes only and is not processed on
+							inbound Workday Web Services requests.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:complexType>
+			<xsd:complexType name="Validation_FaultType">
+				<xsd:sequence>
+					<xsd:element name="Validation_Error" type="wd:Validation_ErrorType"
+						minOccurs="0" maxOccurs="unbounded" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="Processing_FaultType">
+				<xsd:sequence>
+					<xsd:element name="Detail_Message" type="xsd:string"
+						minOccurs="0" maxOccurs="1" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="Validation_ErrorType">
+				<xsd:sequence>
+					<xsd:element name="Message" type="xsd:string"
+						minOccurs="0" maxOccurs="1" />
+					<xsd:element name="Detail_Message" type="xsd:string"
+						minOccurs="0" maxOccurs="1" />
+					<xsd:element name="Xpath" type="xsd:string" minOccurs="0"
+						maxOccurs="1" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="Time_Clock_Event_DataType">
+				<xsd:annotation>
+					<xsd:documentation>Data related to the time clock event(s) to be
+						processed.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="Time_Clock_Event_ID" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Reference ID to identify the Time Clock Event
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Delete_Time_Clock_Event" type="xsd:boolean"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Flag to indicate whether the Time Clock Event
+								should be deleted</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Employee_ID" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Employee associated with the time clock event.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Position_ID" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Position associated with the time clock event.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Time_Clock_Event_Date_Time" type="xsd:dateTime"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Date and time of the Time Clock Event. If you
+								do not include a UTC offset, Workday assumes a 0 offset.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Time_Entry_Code" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Time Entry Code specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Project_ID" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Project ID specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Task_ID" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Project Task ID specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Clock_Event_Type_Reference" type="wd:Time_Punch_TypeObjectType"
+						minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>Punch Type: In, Break, Meal, or Out.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Override_Rate" minOccurs="0"
+						maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Override Rate specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:decimal">
+								<xsd:totalDigits value="10" />
+								<xsd:minInclusive value="0" />
+								<xsd:fractionDigits value="6" />
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="Business_Unit" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Business Unit specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Cost_Center" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Cost Center specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_01" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 01 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_02" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 02 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_03" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 03 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_04" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 04 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_05" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 05 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_06" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 06 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_07" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 07 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_08" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 08 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_09" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 09 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Organization_10" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Organization 10 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_01" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 01 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_02" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 02 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_03" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 03 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_04" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 04 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_05" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 05 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_06" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 06 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_07" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 07 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_08" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 08 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_09" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 09 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_10" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 10 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_11" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 11 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_12" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 12 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_13" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 13 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_14" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 14 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Custom_Worktag_15" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Custom Worktag 15 specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Fund" type="xsd:string" minOccurs="0"
+						maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Fund specified by worker.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Gift" type="xsd:string" minOccurs="0"
+						maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Gift specified by worker</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Grant" type="xsd:string" minOccurs="0"
+						maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Grant specified by worker.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Job_Profile" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Job Profile specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Location" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Location specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Program" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Program specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Region" type="xsd:string" minOccurs="0"
+						maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Region specified by worker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Comment" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Comment added to time clock event.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="Put_Time_Clock_Events_RequestType">
+				<xsd:annotation>
+					<xsd:documentation>Load instances of External Time Clock Events.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="Time_Clock_Event_Data" type="wd:Time_Clock_Event_DataType"
+						maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>Data related to the time clock event(s) to be
+								processed.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute ref="wd:version" />
+			</xsd:complexType>
+			<xsd:complexType name="Put_Time_Clock_Events_ResponseType">
+				<xsd:annotation>
+					<xsd:documentation>Response element from loading an instance of an
+						External Time Clock Event</xsd:documentation>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="Response_Text" type="xsd:string"
+						minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>Response text</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute ref="wd:version" />
+			</xsd:complexType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="Put_Time_Clock_Events_ResponseOutputMsg">
+		<wsdl:part name="body" element="wd:Put_Time_Clock_Events_Response" />
+	</wsdl:message>
+	<wsdl:message name="Validation_FaultMsg">
+		<wsdl:part name="body" element="wd:Validation_Fault" />
+	</wsdl:message>
+	<wsdl:message name="Processing_FaultMsg">
+		<wsdl:part name="body" element="wd:Processing_Fault" />
+	</wsdl:message>
+	<wsdl:message name="Put_Time_Clock_Events_RequestInputMsg">
+		<wsdl:part name="body" element="wd:Put_Time_Clock_Events_Request" />
+	</wsdl:message>
+	<wsdl:portType name="Time_TrackingPort">
+		<wsdl:documentation>Exposes Workday Time Tracking service to ingest
+			time data from external systems.</wsdl:documentation>
+		<wsdl:operation name="Put_Time_Clock_Events">
+			<wsdl:documentation>Add time clock events from a 3rd party time
+				collection system. Workday Time Tracking will process these time
+				clock events into reported and calculated time blocks. The Time
+				Clock Event Time and Clock Event Type Reference will be verified
+				immediately. All other attributes will be persisted, but will be
+				validated by subsequent, non-web service, business processes.
+			</wsdl:documentation>
+			<wsdl:input name="Put_Time_Clock_EventsInput"
+				message="wd-wsdl:Put_Time_Clock_Events_RequestInputMsg" />
+			<wsdl:output name="Put_Time_Clock_EventsOutput"
+				message="wd-wsdl:Put_Time_Clock_Events_ResponseOutputMsg" />
+			<wsdl:fault name="Validation_Fault" message="wd-wsdl:Validation_FaultMsg" />
+			<wsdl:fault name="Processing_Fault" message="wd-wsdl:Processing_FaultMsg" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="Time_TrackingBinding" type="wd-wsdl:Time_TrackingPort">
+		<soapbind:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="Put_Time_Clock_Events">
+			<soapbind:operation style="document" />
+			<wsdl:input name="Put_Time_Clock_EventsInput">
+				<soapbind:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="Put_Time_Clock_EventsOutput">
+				<soapbind:body use="literal" />
+			</wsdl:output>
+			<wsdl:fault name="Processing_Fault">
+				<soapbind:fault name="Processing_Fault" use="literal" />
+			</wsdl:fault>
+			<wsdl:fault name="Validation_Fault">
+				<soapbind:fault name="Validation_Fault" use="literal" />
+			</wsdl:fault>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="Time_TrackingService">
+		<wsdl:port name="Time_Tracking" binding="wd-wsdl:Time_TrackingBinding">
+			<soapbind:address location="Time_Tracking" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

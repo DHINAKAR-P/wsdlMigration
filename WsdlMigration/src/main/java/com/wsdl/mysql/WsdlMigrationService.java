@@ -6,12 +6,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.wsdl.domain.WsdlData;
 
 @Service("WsdlMigrationService")
 public class WsdlMigrationService {
@@ -20,7 +23,10 @@ public class WsdlMigrationService {
 	@Autowired
 	DataLoaderDao dataLoaderDao;
 	
-	@Value("${wsdl.url}")
+	@Autowired
+	WsdlDataDao wsdlDataDao;
+	
+
 	private String wsdlURL;
 	
 	@Value("${javafile.destination}")
@@ -32,6 +38,26 @@ public class WsdlMigrationService {
 	@Value("${wsdl.conversion.command}")
 	private String wsdl_conversion_command;
 	
+	@Value("${wsdl_axis_command_for_operation.command1}")
+	private String wsdlAxisCommandForOperation1;
+	
+	@Value("${wsdl_axis_command_for_operation.command2}")
+	private String wsdlAxisCommandForOperation2;
+	
+	@Value("${javafile.copyOperation}")
+	private String javaFileCopyOperation;
+	
+	@Value("${ant_command}")
+	private String antCommand;
+	
+	@Value("${project.id}")
+	private Long projectId;
+	
+	@Value("${user.id}")
+	private Long userId;
+
+	@Value("${move_to_testAPP}")
+	private String moveToTestAPP;
 	
 	private String hostname;
 		             
@@ -45,23 +71,48 @@ public class WsdlMigrationService {
 	public void setWsdlURL(String wsdlURL) {
 		this.wsdlURL = wsdlURL;
 	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
 	
-	
-	public String display(String wsdl_Name,String className,HashMap<String, String> atrribute_type_map ) throws Exception{
+	public String insertAttribute(String wsdl_Name,String className,HashMap<String, String> atrribute_type_map,Long projectId,Long userId ) throws Exception{
 		
-		dataLoaderDao.insertData(wsdl_Name ,className,atrribute_type_map);
+		dataLoaderDao.insertData(wsdl_Name ,className,atrribute_type_map,projectId,userId);
 		
 		return "Insert Succesfull!!!";
 	}
 	
-	public  String downlaodWSDL() throws Exception	{
-		// String site= "https://community.workday.com/custom/developer/API/Time_Tracking/v23.0/Time_Tracking.wsdl";
-	   // String site="http://www.webservicex.com/globalweather.asmx?WSDL";
-		System.out.println("wsdlURL- > "+wsdlURL);
-		String site = wsdlURL;
+	public  String downlaodWSDL(String wsdlEndpoing) throws Exception	{
+		String site = wsdlEndpoing;
+		String filename;
+		String wsdlNameToReturn;
+		String [] temp;
 	    String partial_filename = site.substring(site.lastIndexOf("/") + 1);
-	    String [] temp = partial_filename.split("\\.");
-	    String filename="testAPP\\"+temp[0]+".wsdl";
+	    if(partial_filename.contains("?")){
+	    	System.out.println("partial_filename- inside ? > "+partial_filename);
+	    	String[] questionMark = partial_filename.split("\\?");
+	    	System.out.println("questionMark[0]"+questionMark[0]);
+	    	 filename = "testAPP\\"+questionMark[0]+".wsdl" ;
+	    	 wsdlNameToReturn=questionMark[0];
+	    }else{
+	    	  temp = partial_filename.split("\\.");
+	 	     filename="testAPP\\"+temp[0]+".wsdl";
+	 	    wsdlNameToReturn = temp[0];
+	    }
+	   
 	    try 
 	    {
 	        URL url=new URL(site);
@@ -82,7 +133,7 @@ public class WsdlMigrationService {
 	    {
 	    	e.printStackTrace();
 	    }
-	    return temp[0];
+	    return wsdlNameToReturn;
 	  }
 	
 	//parse wsdl 
@@ -94,9 +145,7 @@ public class WsdlMigrationService {
 		System.out.println("command- > "+command);
 		try {
 			p = Runtime.getRuntime().exec(command); 
-			System.out.println("p - > started");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -106,7 +155,29 @@ public class WsdlMigrationService {
 
 			 }
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		 p.waitFor();
+        if(p.exitValue() == 0) {
+        }
+	}
+	
+	public void parseWSDLForOperation(String wsdlURL,String wsdl_name) throws InterruptedException {
+		Process p = null;
+		String s;
+		String command = wsdlAxisCommandForOperation1 + wsdlURL +" "+ wsdlAxisCommandForOperation2 +wsdl_name;
+		System.out.println("command- > "+command);
+		try {
+			p = Runtime.getRuntime().exec(command); 
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		try {
+			while ((s = br.readLine()) != null) {
+			    	System.out.println("" + s);
+			 }
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		 p.waitFor();
@@ -115,17 +186,43 @@ public class WsdlMigrationService {
         }
 	}
 	
+	public void changeDirectory(String wsdl_name) throws InterruptedException{
+		String command2 = moveToTestAPP +" "+wsdl_name + " &&  ant";//+antCommand;
+		 System.err.println("command2- > "+command2);
+	        
+	        Process p3 =null;
+	        String s3;
+	        try {
+				p3 = Runtime.getRuntime().exec(command2); 
+				System.out.println("= ? ??  ? -command2  - > ");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			BufferedReader br3 = new BufferedReader(new InputStreamReader(p3.getInputStream()));
+			try {
+				while ((s3 = br3.readLine()) != null) {
+				    	System.out.println("= ? ??  ? - > " + s3);
+
+				 }
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			 p3.waitFor();
+	        if(p3.exitValue() == 0) {
+	        	System.out.println ("wsdl file parsed, Now we have java Files");
+	        }
+	}
+	
+	
 	public void copyJavaFiles() throws InterruptedException{
 		 Process p2 = null;
 			String s2;
-			//String command2 = "cmd /c  xcopy /E /I  testAPP "+"\""+"C:\\Users\\10Decoders\\Videos\\mongo workspace\\WsdlMigration\\src\\main\\java\\"+"\"";
 			//String command2 = javafile_copy +"\""+"C:\\Users\\10Decoders\\Videos\\mongo workspace\\WsdlMigration\\bin\\"+"\"";
 			String command2 = javafile_copy +"\""+javafile_destination+"\"";
 			System.out.println("command2--- > "+command2);
 			try {
 				p2 = Runtime.getRuntime().exec(command2);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			BufferedReader br2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
@@ -134,7 +231,6 @@ public class WsdlMigrationService {
 				    	System.out.println("" + s2);
 				 }
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			 p2.waitFor();
@@ -142,28 +238,39 @@ public class WsdlMigrationService {
 	        	System.err.println ("code copied..!!!");
 	        }
 	}
+
+	public void copyJavaClassesForOperation(String wsdlname) throws InterruptedException {
+		 Process copyOperation = null;
+			String bufferString;
+			String commandForCopyOperation =  moveToTestAPP +" "+wsdlname +" "+ javaFileCopyOperation +" build\\classes  "+"\""+javafile_destination+"\"";
+			System.out.println("commandForCopyOperation--- > "+commandForCopyOperation);
+			try {
+				copyOperation = Runtime.getRuntime().exec(commandForCopyOperation);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			BufferedReader br2 = new BufferedReader(new InputStreamReader(copyOperation.getInputStream()));
+			try {
+				while ((bufferString = br2.readLine()) != null) {
+				    	System.out.println("" + bufferString);
+				 }
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			copyOperation.waitFor();
+	        if(copyOperation.exitValue() == 0) {
+	        	System.err.println ("code copied..for operation!!!");
+	        }		
+	}
+
+	public void methodInsertion(HashMap<String, List<String>> method_parameter_map ) {
+		
+		dataLoaderDao.insertMethod(method_parameter_map);
+	}
 	
-	 public static synchronized void loadLibrary(java.io.File jar){
-	        try {
-	            /*We are using reflection here to circumvent encapsulation; addURL is not public*/
-	            java.net.URLClassLoader loader = (java.net.URLClassLoader)ClassLoader.getSystemClassLoader();
-	            java.net.URL url = jar.toURI().toURL();
-	            /*Disallow if already loaded*/
-	            for (java.net.URL it : java.util.Arrays.asList(loader.getURLs())){
-	                if (it.equals(url)){
-	                    return;
-	                }
-	            }
-	            java.lang.reflect.Method method = java.net.URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{java.net.URL.class});
-	            method.setAccessible(true); /*promote the method to public access*/
-	            method.invoke(loader, new Object[]{url});
-	        } catch (final java.lang.NoSuchMethodException | 
-	            java.lang.IllegalAccessException | 
-	            java.net.MalformedURLException | 
-	            java.lang.reflect.InvocationTargetException e){
-	            //throw new MyException(e);
-	        }
-	    }
-	 
-	 
+	
+	public List<WsdlData> getWsdlData (Long project_id ,Long user_id) throws Exception{
+		
+		return wsdlDataDao.getWsdlData(project_id, user_id);
+	}
 }

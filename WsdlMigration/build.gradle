@@ -38,20 +38,23 @@ dependencies {
   compile('org.springframework.boot:spring-boot-starter-jdbc')
  
  // https://mvnrepository.com/artifact/javax.annotation/jsr250-api
-  compile group: 'javax.annotation', name: 'jsr250-api', version: '1.0'
+  //compile group: 'javax.annotation', name: 'jsr250-api', version: '1.0' need
+
+// https://mvnrepository.com/artifact/javax.xml.bind/jsr173_api
+//compile group: 'javax.xml.bind', name: 'jsr173_api', version: '1.0'
+
 
 //wsdl jar
 // https://mvnrepository.com/artifact/com.predic8/soa-model-core
  // compile group: 'com.predic8', name: 'soa-model-core', version: '1.5.1'
  
  // https://mvnrepository.com/artifact/com.predic8/soa-model-core
-compile group: 'com.predic8', name: 'soa-model-core', version: '1.5.4'
+	compile group: 'com.predic8', name: 'soa-model-core', version: '1.5.4'
+	
+	// https://mvnrepository.com/artifact/wsdl4j/wsdl4j
+	compile group: 'wsdl4j', name: 'wsdl4j', version: '1.6.2'
 
- 
- 
-
- 
- 
+	
 	/*compile('org.springframework.boot:spring-boot-starter-data-jpa')
 	compile('org.springframework.boot:spring-boot-starter-jdbc')
 	compile('org.springframework.boot:spring-boot-starter-web')
