@@ -71,7 +71,7 @@ public class SpringWsdlFieldIdentification {
 				 wsdlMigrationService.insertAttribute(wsdlName,clazz.getSimpleName(),atrribute_type_map,wsdlMigrationService.getProjectId(),wsdlMigrationService.getUserId());
 			}
 		}
-		
+		System.err.println("Method Initialization - > ");
 		//method identification
 		HashMap<String, String> method_map = new HashMap<String, String>();
 		
@@ -98,7 +98,7 @@ public class SpringWsdlFieldIdentification {
 				
 			}
 		}
-		
+		break;
 }
 		System.exit(0);
 	}
