@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.wsdl.domain.WsdlClass;
 import com.wsdl.domain.WsdlData;
 
 @Service("WsdlMigrationService")
@@ -43,6 +44,9 @@ public class WsdlMigrationService {
 	
 	@Value("${wsdl_axis_command_for_operation.command2}")
 	private String wsdlAxisCommandForOperation2;
+	
+	@Value("${wsdl_axis_command_for_operation.command3}")
+	private String wsdlAxisCommandForOperation3;
 	
 	@Value("${javafile.copyOperation}")
 	private String javaFileCopyOperation;
@@ -88,15 +92,18 @@ public class WsdlMigrationService {
 		this.userId = userId;
 	}
 	
-	public String insertAttribute(String wsdl_Name,String className,HashMap<String, String> atrribute_type_map,Long projectId,Long userId ) throws Exception{
+	public String insertAttribute(String wsdl_Name,String className,HashMap<String, String> atrribute_type_map,WsdlData wsdlInsert ) throws Exception{
 		
-		dataLoaderDao.insertData(wsdl_Name ,className,atrribute_type_map,projectId,userId);
+		System.out.println("WSDL Project  iD - > "+wsdlInsert.getProject_id());
+		System.out.println("WSDL USER  iD - > "+wsdlInsert.getUser_id());
+		System.err.println("WSDL   iD - > "+wsdlInsert.getId());
+		dataLoaderDao.insertData(wsdl_Name ,className,atrribute_type_map,wsdlInsert.getProject_id(),wsdlInsert.getUser_id(),wsdlInsert.getId());
 		
 		return "Insert Succesfull!!!";
 	}
 	
-	public  String downlaodWSDL(String wsdlEndpoing) throws Exception	{
-		String site = wsdlEndpoing;
+	public  String downlaodWSDL(WsdlData wsdlEndpoing) throws Exception	{
+		String site = wsdlEndpoing.getWsdl_endpoint();
 		String filename;
 		String wsdlNameToReturn;
 		String [] temp;
@@ -162,10 +169,11 @@ public class WsdlMigrationService {
         }
 	}
 	
-	public void parseWSDLForOperation(String wsdlURL,String wsdl_name) throws InterruptedException {
+	public void parseWSDLForOperation(WsdlData wsdlURL,String wsdl_name) throws InterruptedException {
 		Process p = null;
 		String s;
-		String command = wsdlAxisCommandForOperation1 + wsdlURL +" "+ wsdlAxisCommandForOperation2 +wsdl_name;
+		System.out.println("--->>>"+wsdl_name);
+		String command = wsdlAxisCommandForOperation1 + wsdlURL.getWsdl_endpoint() +" "+wsdlAxisCommandForOperation2+wsdl_name.trim().toLowerCase() +" "+wsdlAxisCommandForOperation3+" "+wsdl_name.toLowerCase();
 		System.out.println("command- > "+command);
 		try {
 			p = Runtime.getRuntime().exec(command); 
@@ -187,7 +195,7 @@ public class WsdlMigrationService {
 	}
 	
 	public void changeDirectory(String wsdl_name) throws InterruptedException{
-		String command2 = moveToTestAPP +" "+wsdl_name + " &&  ant";//+antCommand;
+		String command2 = moveToTestAPP +" "+wsdl_name.toLowerCase() + " &&  ant";//+antCommand;
 		 System.err.println("command2- > "+command2);
 	        
 	        Process p3 =null;
@@ -240,7 +248,7 @@ public class WsdlMigrationService {
 	}
 
 	public void copyJavaClassesForOperation(String wsdlname) throws InterruptedException {
-		 Process copyOperation = null;
+	/*	 Process copyOperation = null;
 			String bufferString;
 			String commandForCopyOperation =  moveToTestAPP +" "+wsdlname +" "+ javaFileCopyOperation +" build\\classes  "+"\""+javafile_destination+"\"";
 			System.out.println("commandForCopyOperation--- > "+commandForCopyOperation);
@@ -260,12 +268,66 @@ public class WsdlMigrationService {
 			copyOperation.waitFor();
 	        if(copyOperation.exitValue() == 0) {
 	        	System.err.println ("code copied..for operation!!!");
-	        }		
+	        }*/
+		
+		 Process copyOperation = null;
+			String bufferString;
+			//String commandForCopyOperation =  moveToTestAPP +" "+wsdlname +" "+ javaFileCopyOperation +" build\\classes  "+"\""+javafile_destination+"\"";
+			//String commandForCopyOperation = " cmd /c  gradle -P customProp=BLZService propertyJar";
+		//	String commandForCopyOperation = "cmd /c gradle -q propertyJar";
+			//String commandForCopyOperation = "cmd /c gradle build ";
+			String commandForCopyOperation = "cmd /c cd mydata && gradle -P customProp=testAPP  mydatafile";
+			System.out.println("commandForCopyOperation--- > "+commandForCopyOperation);
+			try {
+				copyOperation = Runtime.getRuntime().exec(commandForCopyOperation);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			BufferedReader br2 = new BufferedReader(new InputStreamReader(copyOperation.getInputStream()));
+			try {
+				while ((bufferString = br2.readLine()) != null) {
+				    	System.out.println("" + bufferString);
+				 }
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			copyOperation.waitFor();
+	        if(copyOperation.exitValue() == 0) {
+	        	System.err.println ("code copied..for operation!!!");
+	        }
 	}
 
-	public void methodInsertion(HashMap<String, List<String>> method_parameter_map ) {
+	
+	public void addClasspathJar(String wsdlname) throws InterruptedException {
+		 Process copyOperation = null;
+			String bufferString;
+			String commandForCopyOperation = "cmd /c cd mydata && gradle -P customProp="+wsdlname.toLowerCase()+"  mydatafile";
+			System.out.println("addClasspathJar--- > "+commandForCopyOperation);
+			try {
+				copyOperation = Runtime.getRuntime().exec(commandForCopyOperation);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			BufferedReader br2 = new BufferedReader(new InputStreamReader(copyOperation.getInputStream()));
+			try {
+				while ((bufferString = br2.readLine()) != null) {
+				    	System.out.println("" + bufferString);
+				 }
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			copyOperation.waitFor();
+	        if(copyOperation.exitValue() == 0) {
+	        	System.err.println ("code copied..for operation!!!");
+	        }
+	}
+	
+	public void methodInsertion(HashMap<String, List<String>> method_parameter_map,Class<?> returnTypeOfClass,WsdlData wsdldata,WsdlClass wsdlClass ) {
+		String content= returnTypeOfClass.toString();
+		String regex = "\\s*\\binterface\\b\\s*";
+		content = content.replaceAll(regex, "");
 		
-		dataLoaderDao.insertMethod(method_parameter_map);
+		dataLoaderDao.insertMethod(method_parameter_map,content,wsdldata,wsdlClass);
 	}
 	
 	

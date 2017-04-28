@@ -1,0 +1,3 @@
+  include '..:testAPP'
+  //include '..:BLZService'
+  //project(":testAPP").projectDir = file("../testAPP")

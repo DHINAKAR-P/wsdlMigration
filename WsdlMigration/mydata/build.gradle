@@ -1,0 +1,73 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.2.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+ 
+	//runtime files('testAPP/'+customProp+'.jar')
+ // runtime project(':..:testAPP')
+
+//version = '0.0.1-SNAPSHOT'
+//println "My Name IS Jhon Cena-- > and  cant See Me..!! - > "+customProp
+sourceCompatibility = 1.8
+bootRepackage {
+    enabled = false
+}
+sourceSets {
+	compile fileTree(dir:'C://Users//10Decoders//Downloads//axis2-1.7.4-bin//axis2-1.7.4//lib',include: '*.jar')
+    preBuildSources
+    main {
+        java {
+            srcDirs = ['../'+customProp]
+              println "sourceSets -- > DONE "
+        }
+    }
+}
+
+
+task copypackage(type: Copy){
+  println "COpy Jar to package - > "
+  into  customProp
+  from  customProp+'/src/'
+}
+
+
+
+jar {
+  archiveName = customProp+'.jar'
+    destinationDir = projectDir
+    println "JAR BUILD---- > "
+ }
+}
+task mydatafile(dependsOn:build){
+	println "COpy Jar to claspath - > "+customProp
+    doLast{
+    //  println " > ----dolast---- > >>***>>> > > > >> > "+customProp
+    copy{
+  into  "../"
+  from  customProp+'.jar'
+    }
+  }
+
+}
+build.dependsOn copypackage

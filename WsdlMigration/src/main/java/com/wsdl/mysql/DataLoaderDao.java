@@ -16,6 +16,9 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
 
+import com.wsdl.domain.WsdlClass;
+import com.wsdl.domain.WsdlData;
+
 @Component("DataLoaderDao")
 public class DataLoaderDao {
 
@@ -72,12 +75,13 @@ public class DataLoaderDao {
 	}
 	
 	
-	public void insertData(String wsdl_Name,String className,HashMap<String, String> atrribute_type_map,Long projectId,Long userId) throws JSONException {
+	public void insertData(String wsdl_Name,String className,HashMap<String, String> atrribute_type_map,Long projectId,Long userId,Long wsdl_id) throws JSONException {
 		GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
 		
 		SqlParameterSource  namedParameters = new MapSqlParameterSource("class_name", className)
 				.addValue("wsdl_name",wsdl_Name)
 				.addValue("project_id",projectId)
+				.addValue("wsdl_id",wsdl_id)
 				.addValue("user_id",userId);
 			try {
 				namedParameterJdbcTemplate.update(insert_query, namedParameters,generatedKeyHolder, new String[]{"id"});
@@ -95,13 +99,28 @@ public class DataLoaderDao {
 		System.out.println("======== End of inserting data ================");
 	}
 
-	public void insertMethod(HashMap<String,List<String>> method_parameter_map) {
+	public void insertMethod(HashMap<String, List<String>> s,String returnTypeOfClass,WsdlData wsdldata,WsdlClass wsdlClass) {
 
+		
+		SqlParameterSource  namedParameters = new MapSqlParameterSource("class_name", wsdlClass.getClassName())
+				.addValue("wsdl_name",wsdlClass.getWsdlname())
+				.addValue("project_id",wsdlClass.getProjectId())
+				.addValue("wsdl_id",wsdlClass.getWsdlId())
+				.addValue("user_id",wsdlClass.getUserId());
+		
 		GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
 			try {
-				for(String key : method_parameter_map.keySet()) {
+				namedParameterJdbcTemplate.update(insert_query, namedParameters,generatedKeyHolder, new String[]{"id"});
+				Number class_id = generatedKeyHolder.getKey();
+				System.err.println("METHOD DAO CLASS INSERTION  - -------- > "+class_id);
+				//Attribute insertion based on class			
+				for(String key : s.keySet()) {
 					SqlParameterSource  attributeInsertion = new MapSqlParameterSource("operation", key)
-							.addValue("operation_parameters",method_parameter_map.get(key).toString()); 
+							.addValue("returnType", returnTypeOfClass)
+							.addValue("operation_parameters",s.get(key).toString())
+							.addValue("class_id", class_id)
+							.addValue("wsdl_id", wsdldata.getId());
+					
 					namedParameterJdbcTemplate.update(insertOperationByWsdl, attributeInsertion);
 			}
 			} catch (Exception e) {
